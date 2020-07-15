@@ -25,6 +25,11 @@ int main(int argc, char* argv[]) {
 
     constexpr const uint16_t rl{100};
     constexpr const uint8_t fw{0};
+    uint32_t nr{0};
+
+    // reseve space to fill in # of bytes and # of records later.
+    bw << nr << nr;
+
     // create some data 
     for (size_t i = 0; i < 500; ++i) {
         // num alignments for this read 
@@ -46,7 +51,12 @@ int main(int argc, char* argv[]) {
         // tags
         bw << t1;
         bw << t2;
+        ++nr;
     }
+    auto nb = static_cast<uint32_t>(bw.num_bytes());
+    
+    bw.write_integer_at_offset(0, nb);
+    bw.write_integer_at_offset(sizeof(nb), nr);
 
     std::cout << bw;
     return 0;

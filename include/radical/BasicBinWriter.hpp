@@ -23,6 +23,15 @@ public:
 
   void clear() { _bin_data.clear(); }
 
+  template <typename T>
+  bool write_integer_at_offset(size_t offset, const T& v) {
+    if ( offset + sizeof(v) >= _bin_data.size() ) {
+        return false;
+    }
+    std::memcpy(_bin_data.data(), &v, sizeof(v));
+    return true;
+  }
+
   BasicBinWriter& operator<<(const bool& inval) {
     char* inCharPtr = const_cast<char*>(reinterpret_cast<const char*>(&inval));
     std::copy(inCharPtr, inCharPtr + sizeof(inval),
@@ -102,7 +111,7 @@ public:
     return *this;
   }
   */
- 
+
   uint64_t num_bytes() { return _bin_data.size(); }
 
   // support for logging directly from spdlog
@@ -114,5 +123,14 @@ public:
     return os;
   }
 };
+
+template 
+bool BasicBinWriter::write_integer_at_offset<uint16_t>(size_t offset, const uint16_t& v);
+
+template 
+bool BasicBinWriter::write_integer_at_offset<uint32_t>(size_t offset, const uint32_t& v);
+
+template 
+bool BasicBinWriter::write_integer_at_offset<uint64_t>(size_t offset, const uint64_t& v);
 
 #endif //__BASIC_BIN_WRITER__
