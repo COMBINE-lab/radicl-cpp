@@ -12,7 +12,7 @@
 class BasicBinWriter {
 private:
   std::vector<char> _bin_data;
-
+  static constexpr const uint16_t max_str_len{std::numeric_limits<uint16_t>::max()};
 public:
   BasicBinWriter(){};
   BasicBinWriter(size_t reserve_size) { _bin_data.reserve(reserve_size); }
@@ -28,7 +28,7 @@ public:
     if ( offset + sizeof(v) >= _bin_data.size() ) {
         return false;
     }
-    std::memcpy(_bin_data.data(), &v, sizeof(v));
+    std::memcpy(_bin_data.data() + offset, &v, sizeof(v));
     return true;
   }
 
@@ -76,14 +76,14 @@ public:
     return *this;
   }
   BasicBinWriter& operator<<(const std::string& inval) {
-    if (inval.size() >= 0x100) {
-      std::cerr << "ERROR!! DOESN'T SUPPORT STRING LENGTH LONGER THAN 255. "
-                   "String length: "
+    if (inval.size() >= max_str_len) {
+      std::cerr << "ERROR!! DOESN'T SUPPORT STRING LENGTH LONGER THAN "
+                <<  max_str_len << ". String length: "
                 << inval.size() << "\n";
       std::exit(1);
     }
-    char tmp = static_cast<uint8_t>(inval.size());
-    _bin_data.push_back(tmp);
+    (*this) << static_cast<uint16_t>(inval.size());
+    //_bin_data.push_back(tmp);
     //(*this) << inval.size();
     // std::cout << inval.size() << " " << inval.c_str()  << " " << inval <<
     // "\n";
@@ -92,16 +92,16 @@ public:
               std::back_inserter(_bin_data));
     return *this;
   }
-  /*
+  
+  #ifdef STX_NO_STD_STRING_VIEW
   BasicBinWriter& operator<<(const stx::string_view& inval) {
-    if (inval.size() >= 0x100) {
+    if (inval.size() >= max_str_len) {
       std::cerr << "ERROR!! DOESN'T SUPPORT STRING LENGTH LONGER THAN 255. "
                    "String length: "
                 << inval.size() << "\n";
       std::exit(1);
     }
-    char tmp = static_cast<uint8_t>(inval.size());
-    _bin_data.push_back(tmp);
+    (*this) << static_cast<uint16_t>(inval.size());
     //(*this) << inval.size();
     // std::cout << inval.size() << " " << inval.data()  << " " << inval <<
     // "\n";
@@ -110,7 +110,8 @@ public:
               std::back_inserter(_bin_data));
     return *this;
   }
-  */
+  #endif
+  
 
   uint64_t num_bytes() { return _bin_data.size(); }
 
